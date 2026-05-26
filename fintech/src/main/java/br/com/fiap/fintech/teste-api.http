@@ -1,0 +1,81 @@
+### 1. Listar usuários (deve retornar [])
+GET http://localhost:8080/api/usuarios
+
+### 2. Criar um usuário
+POST http://localhost:8080/api/usuarios
+Content-Type: application/json
+
+{
+    "nome": "Breno Silva",
+    "email": "breno@fiap.com.br",
+    "senha": "123456"
+}
+
+### 3. Listar usuários de novo (agora deve ter 1)
+GET http://localhost:8080/api/usuarios
+
+### 4. Buscar usuário por ID
+GET http://localhost:8080/api/usuarios/1
+
+### 5. Fazer login
+POST http://localhost:8080/api/usuarios/login
+Content-Type: application/json
+
+{
+    "email": "breno@fiap.com.br",
+    "senha": "123456"
+}
+
+### 6. Tentar criar com email duplicado (deve dar 400)
+POST http://localhost:8080/api/usuarios
+Content-Type: application/json
+
+{
+    "nome": "Outra pessoa",
+    "email": "breno@fiap.com.br",
+    "senha": "abc123"
+}
+
+### 7. Criar uma conta vinculada ao usuário 1
+POST http://localhost:8080/api/contas
+Content-Type: application/json
+
+{
+    "nome": "Conta Corrente",
+    "tipo": "CORRENTE",
+    "saldo": 1000.00,
+    "usuario": { "id": 1 }
+}
+
+### 8. Listar contas
+GET http://localhost:8080/api/contas
+
+### 9. Criar uma transação (RECEITA) na conta 1
+POST http://localhost:8080/api/transacoes
+Content-Type: application/json
+
+{
+    "descricao": "Salário",
+    "tipo": "RECEITA",
+    "categoria": "Trabalho",
+    "valor": 3000.00,
+    "conta": { "id": 1 }
+}
+
+### 10. Criar uma transação (DESPESA)
+POST http://localhost:8080/api/transacoes
+Content-Type: application/json
+
+{
+    "descricao": "Almoço no restaurante",
+    "tipo": "DESPESA",
+    "categoria": "Alimentação",
+    "valor": 50.00,
+    "conta": { "id": 1 }
+}
+
+### 11. Ver o saldo atualizado da conta (deve ser 1000 + 3000 - 50 = 3950)
+GET http://localhost:8080/api/contas/1
+
+### 12. Listar transações da conta 1
+GET http://localhost:8080/api/transacoes/conta/1
