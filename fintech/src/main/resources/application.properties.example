@@ -1,0 +1,12 @@
+# Renomeie este arquivo para application.properties e preencha com suas credenciais
+
+spring.datasource.url=jdbc:oracle:thin:@oracle.fiap.com.br:1521:ORCL
+spring.datasource.driver-class-name=oracle.jdbc.OracleDriver
+spring.datasource.username=SEU_RM_AQUI
+spring.datasource.password=SUA_SENHA_AQUI
+
+spring.jpa.database-platform=org.hibernate.dialect.OracleDialect
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+
+server.port=8080
