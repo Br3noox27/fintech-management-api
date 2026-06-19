@@ -74,6 +74,21 @@ As tabelas e sequences são criadas automaticamente pelo Hibernate na primeira i
 
 ---
 
+## Autenticação
+
+O sistema usa **autenticação por token de sessão** armazenado no banco de dados.
+
+- O login gera um token único que expira em **8 horas**
+- Todas as rotas (exceto cadastro e login) exigem o header `Authorization: Bearer <token>`
+- O logout invalida o token no banco imediatamente
+
+**Fluxo:**
+1. `POST /api/auth/login` → retorna `{ token, expiraEm, usuario }`
+2. Todas as requisições seguintes enviam `Authorization: Bearer <token>`
+3. `POST /api/auth/logout` → invalida o token
+
+---
+
 ## Credenciais de teste
 
 ### Opção 1 — Criar pela interface
@@ -95,9 +110,17 @@ Content-Type: application/json
 }
 ```
 
-Depois faça login com:
-- **Email:** `breno@fiap.com`
-- **Senha:** `123456`
+Depois faça login:
+
+```http
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "breno@fiap.com",
+  "senha": "123456"
+}
+```
 
 ### Após criar o usuário
 
@@ -107,43 +130,48 @@ Acesse **Contas** no menu e crie ao menos uma conta bancária. Sem conta criada,
 
 ## Funcionalidades
 
-| Tela          | O que faz                                                                 |
-|---------------|---------------------------------------------------------------------------|
-| Login         | Autenticação por e-mail e senha                                           |
-| Home          | Saldo total + atalhos rápidos (PIX, Lançamento, Extrato, Cartões...)      |
-| Lançamento    | Registra receita (entra no saldo) ou despesa (sai do saldo) na conta     |
-| Transferência | PIX entre contas: busca destinatário pelo ID da conta e transfere        |
-| Extrato       | Histórico de transações com filtros por tipo (Todos / Receitas / Despesas)|
-| Contas        | CRUD de contas bancárias                                                  |
-| Cartões       | CRUD de cartões vinculados ao usuário                                     |
-| Transações    | Listagem completa de todas as transações                                  |
-| Usuários      | CRUD de usuários                                                          |
+| Tela          | O que faz                                                                        |
+|---------------|----------------------------------------------------------------------------------|
+| Login         | Autenticação por e-mail e senha com token de sessão (expira em 8h)              |
+| Home          | Saldo total + atalhos rápidos (PIX, Lançamento, Extrato, Cartões...)             |
+| Lançamento    | Registra receita (entra no saldo) ou despesa (sai do saldo) na conta            |
+| Transferência | PIX entre contas: busca destinatário pelo ID da conta e transfere               |
+| Extrato       | Histórico de transações com filtros por tipo (Todos / Receitas / Despesas)      |
+| Contas        | CRUD de contas bancárias                                                         |
+| Cartões       | CRUD de cartões vinculados ao usuário                                            |
+| Transações    | Listagem completa de todas as transações                                         |
+| Usuários      | CRUD de usuários                                                                 |
 
 ---
 
 ## Endpoints da API
 
+### Auth — `/api/auth`
+| Método | Rota             | Descrição                          | Auth      |
+|--------|------------------|------------------------------------|-----------|
+| POST   | /api/auth/login  | Autenticar e obter token           | Público   |
+| POST   | /api/auth/logout | Invalidar token                    | Bearer    |
+
 ### Usuários — `/api/usuarios`
-| Método | Rota                    | Descrição         |
-|--------|-------------------------|-------------------|
-| GET    | /api/usuarios           | Listar todos      |
-| GET    | /api/usuarios/{id}      | Buscar por ID     |
-| POST   | /api/usuarios           | Criar usuário     |
-| PUT    | /api/usuarios/{id}      | Atualizar         |
-| DELETE | /api/usuarios/{id}      | Deletar           |
-| POST   | /api/usuarios/login     | Autenticar        |
+| Método | Rota               | Descrição     | Auth    |
+|--------|--------------------|---------------|---------|
+| GET    | /api/usuarios      | Listar todos  | Bearer  |
+| GET    | /api/usuarios/{id} | Buscar por ID | Bearer  |
+| POST   | /api/usuarios      | Criar usuário | Público |
+| PUT    | /api/usuarios/{id} | Atualizar     | Bearer  |
+| DELETE | /api/usuarios/{id} | Deletar       | Bearer  |
 
 ### Contas — `/api/contas`
-| Método | Rota                          | Descrição                        |
-|--------|-------------------------------|----------------------------------|
-| GET    | /api/contas                   | Listar todas                     |
-| GET    | /api/contas/{id}              | Buscar por ID                    |
-| GET    | /api/contas/usuario/{id}      | Contas de um usuário             |
-| POST   | /api/contas                   | Criar conta                      |
-| PUT    | /api/contas/{id}              | Atualizar conta                  |
-| DELETE | /api/contas/{id}              | Deletar conta                    |
-| POST   | /api/contas/{id}/depositar    | Lançar receita ou despesa        |
-| POST   | /api/contas/transferir        | Transferência PIX entre contas   |
+| Método | Rota                       | Descrição                      | Auth   |
+|--------|----------------------------|--------------------------------|--------|
+| GET    | /api/contas                | Listar todas                   | Bearer |
+| GET    | /api/contas/{id}           | Buscar por ID                  | Bearer |
+| GET    | /api/contas/usuario/{id}   | Contas de um usuário           | Bearer |
+| POST   | /api/contas                | Criar conta                    | Bearer |
+| PUT    | /api/contas/{id}           | Atualizar conta                | Bearer |
+| DELETE | /api/contas/{id}           | Deletar conta                  | Bearer |
+| POST   | /api/contas/{id}/depositar | Lançar receita ou despesa      | Bearer |
+| POST   | /api/contas/transferir     | Transferência PIX entre contas | Bearer |
 
 **Body — lançamento:**
 ```json
@@ -156,24 +184,24 @@ Acesse **Contas** no menu e crie ao menos uma conta bancária. Sem conta criada,
 ```
 
 ### Transações — `/api/transacoes`
-| Método | Rota                           | Descrição                   |
-|--------|--------------------------------|-----------------------------|
-| GET    | /api/transacoes                | Listar todas                |
-| GET    | /api/transacoes/{id}           | Buscar por ID               |
-| GET    | /api/transacoes/conta/{id}     | Transações de uma conta     |
-| POST   | /api/transacoes                | Criar transação             |
-| PUT    | /api/transacoes/{id}           | Atualizar                   |
-| DELETE | /api/transacoes/{id}           | Deletar                     |
+| Método | Rota                       | Descrição               | Auth   |
+|--------|----------------------------|-------------------------|--------|
+| GET    | /api/transacoes            | Listar todas            | Bearer |
+| GET    | /api/transacoes/{id}       | Buscar por ID           | Bearer |
+| GET    | /api/transacoes/conta/{id} | Transações de uma conta | Bearer |
+| POST   | /api/transacoes            | Criar transação         | Bearer |
+| PUT    | /api/transacoes/{id}       | Atualizar               | Bearer |
+| DELETE | /api/transacoes/{id}       | Deletar                 | Bearer |
 
 ### Cartões — `/api/cartoes`
-| Método | Rota                          | Descrição               |
-|--------|-------------------------------|-------------------------|
-| GET    | /api/cartoes                  | Listar todos            |
-| GET    | /api/cartoes/{id}             | Buscar por ID           |
-| GET    | /api/cartoes/usuario/{id}     | Cartões de um usuário   |
-| POST   | /api/cartoes                  | Criar cartão            |
-| PUT    | /api/cartoes/{id}             | Atualizar               |
-| DELETE | /api/cartoes/{id}             | Deletar                 |
+| Método | Rota                      | Descrição             | Auth   |
+|--------|---------------------------|-----------------------|--------|
+| GET    | /api/cartoes              | Listar todos          | Bearer |
+| GET    | /api/cartoes/{id}         | Buscar por ID         | Bearer |
+| GET    | /api/cartoes/usuario/{id} | Cartões de um usuário | Bearer |
+| POST   | /api/cartoes              | Criar cartão          | Bearer |
+| PUT    | /api/cartoes/{id}         | Atualizar             | Bearer |
+| DELETE | /api/cartoes/{id}         | Deletar               | Bearer |
 
 ---
 
@@ -184,19 +212,19 @@ grand finale/
 ├── README.md
 ├── fintech/                          # Backend Spring Boot
 │   └── src/main/java/br/com/fiap/fintech/
-│       ├── model/                    # Entidades JPA (Usuario, Conta, Transacao, Cartao)
+│       ├── model/                    # Entidades JPA (Usuario, Conta, Transacao, Cartao, TokenSessao)
 │       ├── repository/               # Interfaces Spring Data JPA
-│       ├── service/                  # Regras de negócio
-│       ├── controller/               # Endpoints REST
+│       ├── service/                  # Regras de negócio + AuthService
+│       ├── controller/               # Endpoints REST + AuthController
 │       ├── dto/                      # Data Transfer Objects
-│       ├── exception/                # BusinessException + ResourceNotFoundException
-│       └── config/                   # CORS
+│       ├── exception/                # BusinessException, ResourceNotFoundException, UnauthorizedException
+│       └── config/                   # CORS, TokenInterceptor, WebConfig
 │
 └── frontend/                         # Frontend React + Vite
     └── src/
         ├── pages/                    # Login, Home, Deposito, Transferencia, Extrato...
-        ├── services/                 # Chamadas à API (axios)
-        ├── context/                  # AuthContext
+        ├── services/                 # Chamadas à API (axios + Bearer token automático)
+        ├── context/                  # AuthContext (login/logout com token)
         └── components/               # Layout, sidebar
 ```
 
@@ -204,9 +232,10 @@ grand finale/
 
 ## Entidades
 
-| Entidade  | Tabela       | Sequence    |
-|-----------|--------------|-------------|
-| Usuario   | TB_USUARIO   | SQ_USUARIO  |
-| Conta     | TB_CONTA     | SQ_CONTA    |
-| Transacao | TB_TRANSACAO | SQ_TRANSACAO|
-| Cartao    | TB_CARTAO    | SQ_CARTAO   |
+| Entidade     | Tabela            | Sequence         |
+|--------------|-------------------|------------------|
+| Usuario      | TB_USUARIO        | SQ_USUARIO       |
+| Conta        | TB_CONTA          | SQ_CONTA         |
+| Transacao    | TB_TRANSACAO      | SQ_TRANSACAO     |
+| Cartao       | TB_CARTAO         | SQ_CARTAO        |
+| TokenSessao  | TB_TOKEN_SESSAO   | SQ_TOKEN_SESSAO  |
