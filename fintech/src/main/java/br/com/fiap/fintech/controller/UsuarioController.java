@@ -1,5 +1,6 @@
 package br.com.fiap.fintech.controller;
 
+import br.com.fiap.fintech.dto.UsuarioResponseDTO;
 import br.com.fiap.fintech.model.Usuario;
 import br.com.fiap.fintech.service.UsuarioService;
 import jakarta.validation.Valid;
@@ -30,8 +31,8 @@ public class UsuarioController {
     }
 
     @PostMapping
-    public ResponseEntity<Usuario> criar(@Valid @RequestBody Usuario usuario) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(usuarioService.criar(usuario));
+    public ResponseEntity<UsuarioResponseDTO> criar(@Valid @RequestBody Usuario usuario) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(UsuarioResponseDTO.de(usuarioService.criar(usuario)));
     }
 
     @PutMapping("/{id}")

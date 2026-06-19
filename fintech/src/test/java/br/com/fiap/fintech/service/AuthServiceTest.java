@@ -6,13 +6,12 @@ import br.com.fiap.fintech.model.TokenSessao;
 import br.com.fiap.fintech.model.Usuario;
 import br.com.fiap.fintech.repository.TokenSessaoRepository;
 import br.com.fiap.fintech.repository.UsuarioRepository;
-import br.com.fiap.fintech.service.AuthService;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -29,14 +28,29 @@ class AuthServiceTest {
     @Mock
     private TokenSessaoRepository tokenSessaoRepository;
 
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
     @InjectMocks
     private AuthService authService;
 
     @Test
-    void deveLancarExcecaoQuandoCredenciaisInvalidas() {
-        when(usuarioRepository.findByEmailAndSenha("a@a.com", "errada")).thenReturn(Optional.empty());
+    void deveLancarExcecaoQuandoSenhaInvalida() {
+        Usuario usuario = new Usuario();
+        usuario.setEmail("a@a.com");
+        usuario.setSenha("$2a$hash");
+
+        when(usuarioRepository.findByEmail("a@a.com")).thenReturn(Optional.of(usuario));
+        when(passwordEncoder.matches("errada", "$2a$hash")).thenReturn(false);
 
         assertThrows(BusinessException.class, () -> authService.login("a@a.com", "errada"));
+    }
+
+    @Test
+    void deveLancarExcecaoQuandoEmailNaoEncontrado() {
+        when(usuarioRepository.findByEmail("naoexiste@a.com")).thenReturn(Optional.empty());
+
+        assertThrows(BusinessException.class, () -> authService.login("naoexiste@a.com", "qualquer"));
     }
 
     @Test

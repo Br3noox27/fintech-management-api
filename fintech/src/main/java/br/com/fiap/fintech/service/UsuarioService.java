@@ -4,6 +4,7 @@ import br.com.fiap.fintech.exception.BusinessException;
 import br.com.fiap.fintech.exception.ResourceNotFoundException;
 import br.com.fiap.fintech.model.Usuario;
 import br.com.fiap.fintech.repository.UsuarioRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,9 +13,11 @@ import java.util.List;
 public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UsuarioService(UsuarioRepository usuarioRepository) {
+    public UsuarioService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
         this.usuarioRepository = usuarioRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public List<Usuario> listarTodos() {
@@ -30,6 +33,7 @@ public class UsuarioService {
         if (usuarioRepository.existsByEmail(usuario.getEmail())) {
             throw new BusinessException("Já existe um usuário cadastrado com este email");
         }
+        usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
         return usuarioRepository.save(usuario);
     }
 
@@ -38,18 +42,12 @@ public class UsuarioService {
         existente.setNome(dados.getNome());
         existente.setEmail(dados.getEmail());
         if (dados.getSenha() != null && !dados.getSenha().isBlank()) {
-            existente.setSenha(dados.getSenha());
+            existente.setSenha(passwordEncoder.encode(dados.getSenha()));
         }
         return usuarioRepository.save(existente);
     }
 
     public void deletar(Long id) {
-        Usuario usuario = buscarPorId(id);
-        usuarioRepository.delete(usuario);
-    }
-
-    public Usuario autenticar(String email, String senha) {
-        return usuarioRepository.findByEmailAndSenha(email, senha)
-                .orElseThrow(() -> new BusinessException("Email ou senha inválidos"));
+        usuarioRepository.delete(buscarPorId(id));
     }
 }

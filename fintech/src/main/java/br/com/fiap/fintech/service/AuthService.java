@@ -7,6 +7,7 @@ import br.com.fiap.fintech.model.Usuario;
 import br.com.fiap.fintech.repository.TokenSessaoRepository;
 import br.com.fiap.fintech.repository.UsuarioRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -17,15 +18,20 @@ public class AuthService {
 
     private final UsuarioRepository usuarioRepository;
     private final TokenSessaoRepository tokenSessaoRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public AuthService(UsuarioRepository usuarioRepository, TokenSessaoRepository tokenSessaoRepository) {
+    public AuthService(UsuarioRepository usuarioRepository,
+                       TokenSessaoRepository tokenSessaoRepository,
+                       PasswordEncoder passwordEncoder) {
         this.usuarioRepository = usuarioRepository;
         this.tokenSessaoRepository = tokenSessaoRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional
     public TokenSessao login(String email, String senha) {
-        Usuario usuario = usuarioRepository.findByEmailAndSenha(email, senha)
+        Usuario usuario = usuarioRepository.findByEmail(email)
+                .filter(u -> passwordEncoder.matches(senha, u.getSenha()))
                 .orElseThrow(() -> new BusinessException("Email ou senha inválidos"));
 
         tokenSessaoRepository.deleteByExpiraEmBefore(LocalDateTime.now());

@@ -8,10 +8,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Optional;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -19,6 +19,9 @@ class UsuarioServiceTest {
 
     @Mock
     private UsuarioRepository usuarioRepository;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @InjectMocks
     private UsuarioService usuarioService;
@@ -29,28 +32,25 @@ class UsuarioServiceTest {
 
         Usuario usuario = new Usuario();
         usuario.setEmail("teste@fiap.com");
+        usuario.setSenha("123456");
 
         assertThrows(BusinessException.class, () -> usuarioService.criar(usuario));
+        verify(passwordEncoder, never()).encode(anyString());
     }
 
     @Test
-    void deveCriarUsuarioComSucesso() {
+    void deveCriarUsuarioComSenhaHasheada() {
         Usuario usuario = new Usuario();
         usuario.setEmail("novo@fiap.com");
+        usuario.setSenha("123456");
 
         when(usuarioRepository.existsByEmail("novo@fiap.com")).thenReturn(false);
+        when(passwordEncoder.encode("123456")).thenReturn("$2a$hash");
         when(usuarioRepository.save(usuario)).thenReturn(usuario);
 
-        Usuario resultado = usuarioService.criar(usuario);
+        usuarioService.criar(usuario);
 
-        assertNotNull(resultado);
+        verify(passwordEncoder).encode("123456");
         verify(usuarioRepository).save(usuario);
-    }
-
-    @Test
-    void deveLancarExcecaoQuandoCredenciaisInvalidas() {
-        when(usuarioRepository.findByEmailAndSenha("x@x.com", "errada")).thenReturn(Optional.empty());
-
-        assertThrows(BusinessException.class, () -> usuarioService.autenticar("x@x.com", "errada"));
     }
 }
