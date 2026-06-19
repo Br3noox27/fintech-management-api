@@ -116,7 +116,7 @@ function Deposito() {
 }
 
 const s = {
-  wrap: { maxWidth: '460px' },
+  wrap: { maxWidth: '460px', margin: '0 auto' },
   saldoCard: {
     backgroundColor: '#FFFFFF',
     border: '1px solid #E2E8F0',

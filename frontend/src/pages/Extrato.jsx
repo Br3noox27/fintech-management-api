@@ -125,7 +125,7 @@ function Extrato() {
 }
 
 const s = {
-  wrap: { maxWidth: '680px' },
+  wrap: { maxWidth: '680px', margin: '0 auto' },
   filtroRow: { display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' },
   filtroLabel: { color: '#64748B', fontSize: '0.82rem', fontWeight: '600', whiteSpace: 'nowrap' },
   select: {

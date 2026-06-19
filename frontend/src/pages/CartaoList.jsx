@@ -34,9 +34,13 @@ function CartaoList() {
     }
   }
 
-  function fmtLimite(v) {
+  function fmt(v) {
     return Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   }
+
+  const totalLimite = cartoes.reduce((s, c) => s + Number(c.limite), 0);
+  const creditos = cartoes.filter(c => c.tipo === 'CREDITO').length;
+  const debitos = cartoes.filter(c => c.tipo === 'DEBITO').length;
 
   const action = (
     <button style={t.btnPrimary} onClick={() => navigate('/cartoes/novo')}>
@@ -46,11 +50,34 @@ function CartaoList() {
 
   return (
     <Layout titulo="Cartões" action={action}>
-      {carregando && <p style={s.info}>Carregando...</p>}
       {erro && <div style={t.erro}>{erro}</div>}
 
+      <div style={s.resumoGrid}>
+        <div style={s.resumoCard}>
+          <p style={s.resumoLabel}>Total de cartões</p>
+          <p style={s.resumoValor}>{cartoes.length}</p>
+        </div>
+        <div style={s.resumoCard}>
+          <p style={s.resumoLabel}>Limite total</p>
+          <p style={{ ...s.resumoValor, color: '#7C3AED' }}>{fmt(totalLimite)}</p>
+        </div>
+        <div style={s.resumoCard}>
+          <p style={s.resumoLabel}>Crédito</p>
+          <p style={{ ...s.resumoValor, color: '#6D28D9' }}>{creditos}</p>
+        </div>
+        <div style={s.resumoCard}>
+          <p style={s.resumoLabel}>Débito</p>
+          <p style={{ ...s.resumoValor, color: '#D97706' }}>{debitos}</p>
+        </div>
+      </div>
+
+      {carregando && <p style={s.info}>Carregando...</p>}
+
       {!carregando && cartoes.length === 0 && (
-        <p style={s.vazio}>Nenhum cartão cadastrado.</p>
+        <div style={s.vazio}>
+          <p style={s.vazioDesc}>Nenhum cartão cadastrado ainda.</p>
+          <button style={t.btnPrimary} onClick={() => navigate('/cartoes/novo')}>Adicionar cartão</button>
+        </div>
       )}
 
       {!carregando && cartoes.length > 0 && (
@@ -69,19 +96,15 @@ function CartaoList() {
             <tbody>
               {cartoes.map(c => (
                 <tr key={c.id}>
-                  <td style={{ ...t.td, ...s.idCell }}>#{c.id}</td>
-                  <td style={{ ...t.td, fontWeight: '600' }}>{c.bandeira}</td>
-                  <td style={{ ...t.td, fontFamily: 'monospace', letterSpacing: '0.1em', color: '#8b92a9' }}>
+                  <td style={{ ...t.td, color: '#94A3B8', fontFamily: 'monospace', fontSize: '0.85rem' }}>#{c.id}</td>
+                  <td style={{ ...t.td, fontWeight: '700' }}>{c.bandeira}</td>
+                  <td style={{ ...t.td, fontFamily: 'monospace', letterSpacing: '0.08em', color: '#64748B' }}>
                     •••• •••• •••• {c.numeroFinal}
                   </td>
                   <td style={t.td}>
-                    <span style={c.tipo === 'CREDITO' ? s.credito : s.debito}>
-                      {c.tipo}
-                    </span>
+                    <span style={c.tipo === 'CREDITO' ? s.credito : s.debito}>{c.tipo}</span>
                   </td>
-                  <td style={{ ...t.td, color: '#a78bfa', fontWeight: '600' }}>
-                    {fmtLimite(c.limite)}
-                  </td>
+                  <td style={{ ...t.td, color: '#7C3AED', fontWeight: '700' }}>{fmt(c.limite)}</td>
                   <td style={t.td}>
                     <button style={t.btnEdit} onClick={() => navigate(`/cartoes/editar/${c.id}`)}>Editar</button>
                     <button style={t.btnDanger} onClick={() => handleDeletar(c.id, c.numeroFinal)}>Deletar</button>
@@ -97,18 +120,26 @@ function CartaoList() {
 }
 
 const s = {
-  tableWrap: { backgroundColor: '#1a1836', border: '1px solid #2d2b5a', borderRadius: '12px', overflow: 'hidden' },
-  idCell: { color: '#8b92a9', fontFamily: 'monospace', fontSize: '0.85rem' },
-  credito: {
-    padding: '3px 10px', borderRadius: '20px', fontSize: '0.78rem', fontWeight: '600',
-    color: '#a78bfa', backgroundColor: 'rgba(124,58,237,0.15)',
+  resumoGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(4, 1fr)',
+    gap: '12px',
+    marginBottom: '24px',
   },
-  debito: {
-    padding: '3px 10px', borderRadius: '20px', fontSize: '0.78rem', fontWeight: '600',
-    color: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.12)',
+  resumoCard: {
+    backgroundColor: '#FFFFFF',
+    border: '1px solid #E2E8F0',
+    borderRadius: '12px',
+    padding: '16px 20px',
   },
-  info: { color: '#8b92a9' },
-  vazio: { color: '#8b92a9', textAlign: 'center', padding: '48px' },
+  resumoLabel: { color: '#94A3B8', fontSize: '0.72rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' },
+  resumoValor: { color: '#1A1D23', fontSize: '1.3rem', fontWeight: '800', letterSpacing: '-0.03em' },
+  tableWrap: { backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '12px', overflow: 'hidden' },
+  credito: { padding: '3px 10px', borderRadius: '20px', fontSize: '0.78rem', fontWeight: '600', color: '#6D28D9', backgroundColor: 'rgba(109,40,217,0.08)' },
+  debito:  { padding: '3px 10px', borderRadius: '20px', fontSize: '0.78rem', fontWeight: '600', color: '#D97706', backgroundColor: 'rgba(217,119,6,0.08)' },
+  info: { color: '#94A3B8' },
+  vazio: { textAlign: 'center', padding: '64px 24px', backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '12px' },
+  vazioDesc: { color: '#94A3B8', marginBottom: '20px', fontSize: '0.95rem' },
 };
 
 export default CartaoList;
