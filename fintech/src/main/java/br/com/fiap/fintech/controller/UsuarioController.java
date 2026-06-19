@@ -15,8 +15,11 @@ import java.util.List;
 @RequestMapping("/api/usuarios")
 public class UsuarioController {
 
-    @Autowired
-    private UsuarioService usuarioService;
+   private final UsuarioService usuarioService;
+
+    public UsuarioController(UsuarioService usuarioService) {
+        this.usuarioService = usuarioService;
+}
 
     // GET - Listar todos (200 OK)
     @GetMapping
@@ -28,13 +31,6 @@ public class UsuarioController {
     @GetMapping("/{id}")
     public ResponseEntity<Usuario> buscarPorId(@PathVariable Long id) {
         return ResponseEntity.ok(usuarioService.buscarPorId(id));
-    }
-
-    // POST - Criar (201 Created)
-    @PostMapping
-    public ResponseEntity<Usuario> criar(@Valid @RequestBody Usuario usuario) {
-        Usuario novo = usuarioService.criar(usuario);
-        return ResponseEntity.status(HttpStatus.CREATED).body(novo);
     }
 
     // PUT - Atualizar (200 OK)

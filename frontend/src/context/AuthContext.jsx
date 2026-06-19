@@ -1,15 +1,12 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import usuarioService from '../services/usuarioService';
+import api from '../services/api';
 
-// Cria o Context
 const AuthContext = createContext();
 
-// Provider — componente que envolve a aplicação e disponibiliza os dados
 export function AuthProvider({ children }) {
   const [usuario, setUsuario] = useState(null);
   const [carregando, setCarregando] = useState(true);
 
-  // Ao iniciar a aplicação, tenta recuperar usuário do localStorage
   useEffect(() => {
     const usuarioSalvo = localStorage.getItem('usuario');
     if (usuarioSalvo) {
@@ -18,19 +15,23 @@ export function AuthProvider({ children }) {
     setCarregando(false);
   }, []);
 
-  // Faz login chamando a API e salvando o usuário
   async function login(email, senha) {
-    const resposta = await usuarioService.login(email, senha);
-    const dadosUsuario = resposta.data;
-    setUsuario(dadosUsuario);
+    const resposta = await api.post('/api/auth/login', { email, senha });
+    const { token, usuario: dadosUsuario } = resposta.data;
+    localStorage.setItem('token', token);
     localStorage.setItem('usuario', JSON.stringify(dadosUsuario));
+    setUsuario(dadosUsuario);
     return dadosUsuario;
   }
 
-  // Faz logout limpando estado e storage
-  function logout() {
-    setUsuario(null);
-    localStorage.removeItem('usuario');
+  async function logout() {
+    try {
+      await api.post('/api/auth/logout');
+    } finally {
+      localStorage.removeItem('token');
+      localStorage.removeItem('usuario');
+      setUsuario(null);
+    }
   }
 
   return (
@@ -40,7 +41,6 @@ export function AuthProvider({ children }) {
   );
 }
 
-// Hook customizado pra usar o context fácil em qualquer componente
 export function useAuth() {
   return useContext(AuthContext);
 }
