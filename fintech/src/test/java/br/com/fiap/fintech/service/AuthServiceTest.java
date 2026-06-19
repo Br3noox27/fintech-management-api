@@ -6,6 +6,8 @@ import br.com.fiap.fintech.model.TokenSessao;
 import br.com.fiap.fintech.model.Usuario;
 import br.com.fiap.fintech.repository.TokenSessaoRepository;
 import br.com.fiap.fintech.repository.UsuarioRepository;
+import br.com.fiap.fintech.service.AuthService;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
