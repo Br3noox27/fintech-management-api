@@ -1,0 +1,38 @@
+# ============================================================
+# SEGREDO - nunca versionar
+# ============================================================
+# O application.properties carrega usuario e senha do banco Oracle da
+# FIAP. Ele estava COMMITADO num repositorio publico desde o primeiro
+# commit (29/09/2026). Use o .example como modelo e mantenha o real
+# fora do git.
+fintech/src/main/resources/application.properties
+**/application-local.properties
+.env
+*.env
+!.env.example
+
+# ============================================================
+# Java / Maven
+# ============================================================
+target/
+*.class
+*.jar
+!.mvn/wrapper/maven-wrapper.jar
+.mvn/timing.properties
+
+# ============================================================
+# Node / frontend
+# ============================================================
+node_modules/
+dist/
+.vite/
+npm-debug.log*
+
+# ============================================================
+# IDE e sistema
+# ============================================================
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
