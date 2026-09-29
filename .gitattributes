@@ -1,0 +1,10 @@
+# O GitHub escolhe a linguagem pelo total de BYTES. Aqui o frontend em
+# React (.jsx, ~60 KB, mais o package-lock de 98 KB) pesava mais que a
+# API em Java (~46 KB), e o repositorio - que se chama
+# "fintech-management-api" - aparecia como JavaScript no perfil.
+#
+# linguist-vendored tira da contagem sem esconder: os arquivos continuam
+# versionados e navegaveis.
+frontend/** linguist-vendored
+fintech/mvnw      linguist-vendored
+fintech/mvnw.cmd  linguist-vendored
